@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deadpool — Paid Ads Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #0f0f0f;
+    --surface2: #141414;
+    --border: #1f1f1f;
+    --red: #dc2626;
+    --red-dim: #7f1d1d;
+    --yellow: #eab308;
+    --green: #16a34a;
+    --text: #e5e5e5;
+    --muted: #525252;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Scanline effect */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--red);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .skull {
+    font-size: 24px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .logo h1 {
+    font-family: var(--display);
+    font-size: 28px;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  .logo h1 span { color: var(--red); }
+
+  .tagline {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: blink 1.5s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 57px);
+  }
+
+  /* Left panel */
+  .panel-left {
+    border-right: 1px solid var(--border);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  input, select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--red);
+  }
+
+  select option { background: var(--surface2); }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn-add {
+    width: 100%;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+
+  .btn-add:hover { background: #b91c1c; }
+  .btn-add:active { transform: scale(0.99); }
+
+  /* Summary cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .summary-card {
+    background: var(--surface);
+    padding: 16px;
+  }
+
+  .summary-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .summary-value {
+    font-size: 22px;
+    font-family: var(--display);
+    letter-spacing: 0.05em;
+  }
+
+  .summary-value.red { color: var(--red); }
+  .summary-value.yellow { color: var(--yellow); }
+  .summary-value.green { color: var(--green); }
+  .summary-value.white { color: var(--text); }
+
+  /* Right panel */
+  .panel-right {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-x: auto;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--red-dim);
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover { background: var(--surface2); }
+
+  td {
+    padding: 10px 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .platform-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+
+  .badge-meta { color: #3b82f6; border-color: #1e3a5f; background: #0a1628; }
+  .badge-google { color: #eab308; border-color: #713f12; background: #1c1000; }
+  .badge-linkedin { color: #60a5fa; border-color: #1e3a5f; background: #0a1628; }
+  .badge-tiktok { color: #ec4899; border-color: #831843; background: #1a0010; }
+  .badge-reddit { color: #f97316; border-color: #7c2d12; background: #1a0a00; }
+  .badge-x { color: #e5e5e5; border-color: #333; background: #0a0a0a; }
+
+  .metric-good { color: var(--green); }
+  .metric-warn { color: var(--yellow); }
+  .metric-bad { color: var(--red); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .skull-big { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state p { font-size: 12px; letter-spacing: 0.1em; }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    transition: color 0.15s;
+  }
+
+  .delete-btn:hover { color: var(--red); }
+
+  .built-badge {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    background: var(--surface);
+    z-index: 100;
+  }
+
+  .built-badge a { color: var(--red); text-decoration: none; }
+
+  .week-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .clear-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="skull">💀</span>
+    <div>
+      <h1>DEAD<span>POOL</span></h1>
+      <div class="tagline">Paid Ads Performance Dashboard</div>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="status-dot"></div>
+    <span>LIVE TRACKING</span>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- Left: Form -->
+  <div class="panel-left">
+    <div class="panel-title">Add Campaign</div>
+
+    <div class="form-group">
+      <label>Platform</label>
+      <select id="platform">
+        <option value="Meta">Meta</option>
+        <option value="Google">Google</option>
+        <option value="LinkedIn">LinkedIn</option>
+        <option value="TikTok">TikTok</option>
+        <option value="Reddit">Reddit</option>
+        <option value="X">X</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Campaign Name</label>
+      <input type="text" id="name" placeholder="e.g. Brand Awareness Q2">
+    </div>
+
+    <div class="form-group">
+      <label>Quick Range</label>
+      <select id="quick-range" onchange="applyQuickRange()">
+        <option value="">Custom</option>
+        <option value="today">Today</option>
+        <option value="7">Last 7 days</option>
+        <option value="14">Last 14 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="month">This month</option>
+      </select>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Date From</label>
+        <input type="date" id="date-from">
+      </div>
+      <div class="form-group">
+        <label>Date To</label>
+        <input type="date" id="date-to">
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Spend ($)</label>
+        <input type="number" id="spend" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Impressions</label>
+        <input type="number" id="impressions" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Clicks</label>
+        <input type="number" id="clicks" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Conversions</label>
+        <input type="number" id="conversions" placeholder="0" min="0">
+      </div>
+    </div>
+
+    <button class="btn-add" onclick="addCampaign()">+ Deploy Campaign</button>
+
+    <div class="panel-title">Summary</div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-label">Total Spend</div>
+        <div class="summary-value red" id="total-spend">$0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Total Clicks</div>
+        <div class="summary-value white" id="total-clicks">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Avg CPC</div>
+        <div class="summary-value yellow" id="avg-cpc">$0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Avg CVR</div>
+        <div class="summary-value green" id="avg-cvr">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Dashboard -->
+  <div class="panel-right">
+    <div class="top-row">
+      <div class="panel-title" style="flex:1">Campaign Performance</div>
+      <button class="clear-btn" onclick="exportPNG()" style="margin-right:8px; border-color:#dc2626; color:#dc2626;">Export PNG</button>
+      <button class="clear-btn" onclick="clearAll()">Clear All</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Campaign</th>
+            <th>Date Range</th>
+            <th>Spend</th>
+            <th>Impressions</th>
+            <th>Clicks</th>
+            <th>Conversions</th>
+            <th>CPM</th>
+            <th>CPC</th>
+            <th>CVR</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="campaign-table">
+          <tr>
+            <td colspan="11">
+              <div class="empty-state">
+                <span class="skull-big">💀</span>
+                <p>NO CAMPAIGNS DEPLOYED YET</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="built-badge">Built with <a href="https://commandcode.ai" target="_blank">Command Code</a></div>
+
+<script>
+  let campaigns = JSON.parse(localStorage.getItem('deadpool-campaigns') || '[]');
+
+  function applyQuickRange() {
+    const val = document.getElementById('quick-range').value;
+    const today = new Date();
+    const fmt = d => d.toISOString().split('T')[0];
+    if (!val) return;
+    document.getElementById('date-to').value = fmt(today);
+    if (val === 'today') {
+      document.getElementById('date-from').value = fmt(today);
+    } else if (val === 'month') {
+      const first = new Date(today.getFullYear(), today.getMonth(), 1);
+      document.getElementById('date-from').value = fmt(first);
+    } else {
+      const from = new Date(today);
+      from.setDate(today.getDate() - parseInt(val));
+      document.getElementById('date-from').value = fmt(from);
+    }
+  }
+
+  function addCampaign() {
+    const platform = document.getElementById('platform').value;
+    const name = document.getElementById('name').value.trim();
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+    const spend = parseFloat(document.getElementById('spend').value) || 0;
+    const impressions = parseInt(document.getElementById('impressions').value) || 0;
+    const clicks = parseInt(document.getElementById('clicks').value) || 0;
+    const conversions = parseInt(document.getElementById('conversions').value) || 0;
+
+    if (!name) { document.getElementById('name').focus(); return; }
+
+    const dateRange = dateFrom && dateTo ? dateFrom + ' → ' + dateTo : dateFrom || dateTo || '—';
+
+    campaigns.push({ id: Date.now(), platform, name, dateRange, spend, impressions, clicks, conversions });
+    localStorage.setItem('deadpool-campaigns', JSON.stringify(campaigns));
+
+    document.getElementById('name').value = '';
+    document.getElementById('date-from').value = '';
+    document.getElementById('date-to').value = '';
+    document.getElementById('quick-range').value = '';
+    document.getElementById('spend').value = '';
+    document.getElementById('impressions').value = '';
+    document.getElementById('clicks').value = '';
+    document.getElementById('conversions').value = '';
+
+    render();
+  }
+
+  function exportPNG() {
+    if (campaigns.length === 0) return alert('No campaigns to export.');
+    const rows = campaigns.map(c => {
+      const cpm = c.impressions > 0 ? (c.spend / c.impressions * 1000).toFixed(2) : '—';
+      const cpc = c.clicks > 0 ? (c.spend / c.clicks).toFixed(2) : '—';
+      const cvr = c.clicks > 0 ? (c.conversions / c.clicks * 100).toFixed(2) + '%' : '—';
+      return { platform: c.platform, name: c.name, dateRange: c.dateRange || '—', spend: '$' + c.spend.toFixed(2), impressions: c.impressions.toLocaleString(), clicks: c.clicks.toLocaleString(), conversions: c.conversions.toLocaleString(), cpm: cpm !== '—' ? '$' + cpm : '—', cpc: cpc !== '—' ? '$' + cpc : '—', cvr };
+    });
+
+    const cols = ['platform','name','dateRange','spend','impressions','clicks','conversions','cpm','cpc','cvr'];
+    const headers = ['Platform','Campaign','Date Range','Spend','Impressions','Clicks','Conversions','CPM','CPC','CVR'];
+    const colW = [90,160,160,80,100,80,100,80,80,80];
+    const rowH = 36;
+    const headerH = 44;
+    const paddingTop = 80;
+    const totalW = colW.reduce((a,b)=>a+b,0) + 80;
+    const totalH = paddingTop + headerH + rows.length * rowH + 60;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = totalW;
+    canvas.height = totalH;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(0, 0, totalW, totalH);
+
+    ctx.fillStyle = '#dc2626';
+    ctx.fillRect(0, 0, 4, totalH);
+
+    ctx.font = 'bold 22px "Courier New", monospace';
+    ctx.fillStyle = '#e5e5e5';
+    ctx.fillText('DEAD', 24, 40);
+    ctx.fillStyle = '#dc2626';
+    ctx.fillText('POOL', 90, 40);
+    ctx.font = '11px "Courier New", monospace';
+    ctx.fillStyle = '#525252';
+    ctx.fillText('PAID ADS PERFORMANCE REPORT', 24, 58);
+
+    let x = 40;
+    ctx.fillStyle = '#1f1f1f';
+    ctx.fillRect(20, paddingTop, totalW - 40, headerH);
+    ctx.font = '10px "Courier New", monospace';
+    ctx.fillStyle = '#525252';
+    headers.forEach((h, i) => {
+      ctx.fillText(h.toUpperCase(), x, paddingTop + 26);
+      x += colW[i];
+    });
+
+    ctx.strokeStyle = '#7f1d1d';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, paddingTop + headerH);
+    ctx.lineTo(totalW - 20, paddingTop + headerH);
+    ctx.stroke();
+
+    rows.forEach((row, ri) => {
+      const y = paddingTop + headerH + ri * rowH;
+      if (ri % 2 === 0) {
+        ctx.fillStyle = '#0f0f0f';
+        ctx.fillRect(20, y, totalW - 40, rowH);
+      }
+
+      x = 40;
+      ctx.font = '11px "Courier New", monospace';
+      cols.forEach((col, ci) => {
+        const val = row[col];
+        if (col === 'cvr') {
+          const num = parseFloat(val);
+          ctx.fillStyle = num >= 3 ? '#16a34a' : num >= 1 ? '#eab308' : num > 0 ? '#dc2626' : '#525252';
+        } else if (col === 'spend') {
+          ctx.fillStyle = '#dc2626';
+        } else if (col === 'platform') {
+          ctx.fillStyle = '#60a5fa';
+        } else {
+          ctx.fillStyle = '#e5e5e5';
+        }
+        ctx.fillText(val, x, y + 22);
+        x += colW[ci];
+      });
+
+      ctx.strokeStyle = '#1f1f1f';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(20, y + rowH);
+      ctx.lineTo(totalW - 20, y + rowH);
+      ctx.stroke();
+    });
+
+    ctx.font = '10px "Courier New", monospace';
+    ctx.fillStyle = '#525252';
+    ctx.fillText('commandcode.ai', totalW - 120, totalH - 20);
+
+    const link = document.createElement('a');
+    link.download = 'deadpool-report.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  function deleteCampaign(id) {
+    campaigns = campaigns.filter(c => c.id !== id);
+    localStorage.setItem('deadpool-campaigns', JSON.stringify(campaigns));
+    render();
+  }
+
+  function clearAll() {
+    if (confirm('Clear all campaigns?')) {
+      campaigns = [];
+      localStorage.removeItem('deadpool-campaigns');
+      render();
+    }
+  }
+
+  function fmt(n, prefix='', suffix='', decimals=2) {
+    if (!isFinite(n) || isNaN(n)) return '—';
+    return prefix + n.toFixed(decimals) + suffix;
+  }
+
+  function cvrClass(cvr) {
+    if (!isFinite(cvr)) return '';
+    if (cvr >= 3) return 'metric-good';
+    if (cvr >= 1) return 'metric-warn';
+    return 'metric-bad';
+  }
+
+  function render() {
+    const tbody = document.getElementById('campaign-table');
+
+    if (campaigns.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><span class="skull-big">💀</span><p>NO CAMPAIGNS DEPLOYED YET</p></div></td></tr>`;
+      updateSummary(0, 0, 0, 0);
+      return;
+    }
+
+    let totalSpend = 0, totalClicks = 0, totalCPCSum = 0, totalCVRSum = 0, cpcCount = 0, cvrCount = 0;
+
+    tbody.innerHTML = campaigns.map(c => {
+      const cpm = c.impressions > 0 ? (c.spend / c.impressions) * 1000 : NaN;
+      const cpc = c.clicks > 0 ? c.spend / c.clicks : NaN;
+      const cvr = c.clicks > 0 ? (c.conversions / c.clicks) * 100 : NaN;
+
+      totalSpend += c.spend;
+      totalClicks += c.clicks;
+      if (isFinite(cpc)) { totalCPCSum += cpc; cpcCount++; }
+      if (isFinite(cvr)) { totalCVRSum += cvr; cvrCount++; }
+
+      const badge = `badge-${c.platform.toLowerCase()}`;
+
+      return `<tr>
+        <td><span class="platform-badge ${badge}">${c.platform}</span></td>
+        <td>${c.name}</td>
+        <td style="color:var(--muted);font-size:11px;">${c.dateRange || '—'}</td>
+        <td>$${c.spend.toFixed(2)}</td>
+        <td>${c.impressions.toLocaleString()}</td>
+        <td>${c.clicks.toLocaleString()}</td>
+        <td>${c.conversions.toLocaleString()}</td>
+        <td>${fmt(cpm, '$')}</td>
+        <td>${fmt(cpc, '$')}</td>
+        <td class="${cvrClass(cvr)}">${fmt(cvr, '', '%')}</td>
+        <td><button class="delete-btn" onclick="deleteCampaign(${c.id})">✕</button></td>
+      </tr>`;
+    }).join('');
+
+    updateSummary(totalSpend, totalClicks, cpcCount > 0 ? totalCPCSum / cpcCount : 0, cvrCount > 0 ? totalCVRSum / cvrCount : 0);
+  }
+
+  function updateSummary(spend, clicks, avgCpc, avgCvr) {
+    document.getElementById('total-spend').textContent = '$' + spend.toFixed(2);
+    document.getElementById('total-clicks').textContent = clicks.toLocaleString();
+    document.getElementById('avg-cpc').textContent = '$' + avgCpc.toFixed(2);
+    document.getElementById('avg-cvr').textContent = avgCvr.toFixed(2) + '%';
+  }
+
+  render();
+</script>
+</body>
+</html>
